@@ -2,6 +2,7 @@ import { mkdir, appendFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { calculatePayment } from "@/lib/calc";
+import { findCountryByName } from "@/lib/countries";
 import type { Currency, PaymentRequestPayload } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -32,6 +33,14 @@ export async function POST(request: Request) {
 
     if (!isCurrency(body.currency)) {
       return NextResponse.json({ error: "Некорректная валюта" }, { status: 400 });
+    }
+
+    const country = findCountryByName(String(body.supplierCountry || ""));
+    if (country?.blocked) {
+      return NextResponse.json(
+        { error: `Платежи в ${country.name} недоступны` },
+        { status: 400 },
+      );
     }
 
     const amount = Number(body.amount);

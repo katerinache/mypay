@@ -22,7 +22,7 @@ interface FormErrors {
 
 export function PaymentForm() {
   const [currency, setCurrency] = useState<Currency>("EUR");
-  const [amount, setAmount] = useState("13657.72");
+  const [amount, setAmount] = useState("");
   const [rate, setRate] = useState(String(DEFAULT_RATES.EUR));
   const [liveRates, setLiveRates] = useState<Record<Currency, number>>(DEFAULT_RATES);
   const [rateSources, setRateSources] = useState<Record<Currency, RateSource>>({
@@ -236,7 +236,7 @@ export function PaymentForm() {
           onClick={() => {
             setStatus("idle");
             setRequestId("");
-            setAmount("13657.72");
+            setAmount("");
             setRate(String(liveRates.EUR ?? DEFAULT_RATES.EUR));
             setCurrency("EUR");
             currencyRef.current = "EUR";
