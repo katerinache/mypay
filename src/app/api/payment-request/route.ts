@@ -3,6 +3,7 @@ import path from "node:path";
 import { NextResponse } from "next/server";
 import { calculatePayment } from "@/lib/calc";
 import { findCountryByName } from "@/lib/countries";
+import { notifyRocketChat } from "@/lib/rocketchat";
 import type { Currency, PaymentRequestPayload } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -69,10 +70,25 @@ export async function POST(request: Request) {
     const record = {
       id,
       createdAt: new Date().toISOString(),
-      ...body,
+      partnerCompany: String(body.partnerCompany).trim(),
+      contactName: String(body.contactName).trim(),
+      email: String(body.email).trim(),
+      phone: String(body.phone).trim(),
+      agencyId: body.agencyId,
+      supplierName: String(body.supplierName).trim(),
+      supplierCountry: String(body.supplierCountry).trim(),
+      invoiceNumber: String(body.invoiceNumber).trim(),
+      invoiceDate: body.invoiceDate,
       amount: breakdown.amount,
+      currency: body.currency,
       rate: breakdown.rate,
       commissionRate: breakdown.commissionRate,
+      paymentSource: body.paymentSource === "transfer" ? ("transfer" as const) : ("balance" as const),
+      comment: body.comment,
+      touristServicesOnly: true,
+      notRestrictedCountry: true,
+      acceptEstimate: true,
+      invoiceFileName: body.invoiceFileName,
       breakdown,
       status: "submitted",
     };
@@ -90,7 +106,17 @@ export async function POST(request: Request) {
       console.info("payment-request", JSON.stringify(record));
     }
 
-    return NextResponse.json({ ok: true, id, breakdown });
+    const rocket = await notifyRocketChat(record);
+    if (!rocket.sent) {
+      console.warn("rocketchat-notify", rocket.error);
+    }
+
+    return NextResponse.json({
+      ok: true,
+      id,
+      breakdown,
+      notified: rocket.sent,
+    });
   } catch {
     return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 });
   }

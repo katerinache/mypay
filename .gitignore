@@ -1,4 +1,4 @@
-# dependencies
+image.png# dependencies
 /node_modules
 /.pnp
 .pnp.*
@@ -30,6 +30,7 @@ yarn-error.log*
 
 # env files
 .env*
+!.env.example
 
 # vercel
 .vercel
