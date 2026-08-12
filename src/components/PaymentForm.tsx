@@ -36,8 +36,6 @@ export function PaymentForm() {
     "Запасной ориентир. Итог — банковский курс на день оплаты.",
   );
   const [ratesLoading, setRatesLoading] = useState(true);
-  const [rateManual, setRateManual] = useState(false);
-  const rateManualRef = useRef(false);
   const currencyRef = useRef<Currency>("EUR");
   const commissionRate = DEFAULT_COMMISSION;
   const [paymentSource, setPaymentSource] = useState<PaymentSource>("balance");
@@ -60,10 +58,8 @@ export function PaymentForm() {
         setLiveRates(data.rates);
         setRateSources(data.sources);
         setRateNote(data.note);
-        if (!rateManualRef.current) {
-          const code = currencyRef.current;
-          setRate(String(data.rates[code] ?? DEFAULT_RATES[code]));
-        }
+        const code = currencyRef.current;
+        setRate(String(data.rates[code] ?? DEFAULT_RATES[code]));
       } catch {
         if (!cancelled) {
           setRateNote("Не удалось обновить курс. Используем запасной ориентир.");
@@ -93,8 +89,6 @@ export function PaymentForm() {
   function onCurrencyChange(next: Currency) {
     setCurrency(next);
     currencyRef.current = next;
-    rateManualRef.current = false;
-    setRateManual(false);
     setRate(String(liveRates[next] ?? DEFAULT_RATES[next]));
   }
 
@@ -109,7 +103,6 @@ export function PaymentForm() {
       "supplierCountry",
       "invoiceNumber",
       "amount",
-      "rate",
     ] as const;
 
     for (const key of required) {
@@ -128,9 +121,9 @@ export function PaymentForm() {
       errors.amount = "Укажите сумму больше 0";
     }
 
-    const parsedRate = Number(String(form.get("rate") || "").replace(",", "."));
+    const parsedRate = Number(String(rate).replace(",", "."));
     if (!Number.isFinite(parsedRate) || parsedRate <= 0) {
-      errors.rate = "Укажите курс больше 0";
+      errors.amount = errors.amount || "Не удалось получить курс. Обновите страницу.";
     }
 
     if (form.get("touristServicesOnly") !== "on") {
@@ -211,8 +204,6 @@ export function PaymentForm() {
       setRate(String(liveRates[currency] ?? DEFAULT_RATES[currency]));
       setInvoiceName("");
       setAmount("");
-      rateManualRef.current = false;
-      setRateManual(false);
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : "Ошибка отправки");
@@ -241,8 +232,6 @@ export function PaymentForm() {
             setRate(String(liveRates.EUR ?? DEFAULT_RATES.EUR));
             setCurrency("EUR");
             currencyRef.current = "EUR";
-            rateManualRef.current = false;
-            setRateManual(false);
           }}
         >
           Создать ещё одну заявку
@@ -255,7 +244,7 @@ export function PaymentForm() {
     <EstimatePanel
       breakdown={breakdown}
       rateMeta={{
-        source: rateManual ? "default" : rateSources[currency],
+        source: rateSources[currency],
         loading: ratesLoading,
         note: rateNote,
       }}
@@ -298,31 +287,8 @@ export function PaymentForm() {
                 </option>
               ))}
             </TextSelect>
-            <TextInput
-              className="sm:col-span-2"
-              label="Курс к рублю"
-              name="rate"
-              inputMode="decimal"
-              value={rate}
-              onChange={(e) => {
-                rateManualRef.current = true;
-                setRateManual(true);
-                setRate(e.target.value);
-              }}
-              required
-              error={fieldErrors.rate}
-              hint={
-                ratesLoading
-                  ? "Загружаем курс BCC…"
-                  : rateSources[currency] === "bcc"
-                    ? "Курс BCC FX — покупка валюты за ₽. Можно поправить вручную"
-                    : rateSources[currency] === "cbr"
-                      ? "Курс ЦБ РФ (если BCC не отдал пару). Можно поправить вручную"
-                      : "Запасной ориентир. Можно поправить вручную"
-              }
-              suffix="₽"
-            />
             <input type="hidden" name="commissionRate" value={commissionRate} />
+            <input type="hidden" name="rate" value={rate} />
           </div>
         </SectionCard>
 
