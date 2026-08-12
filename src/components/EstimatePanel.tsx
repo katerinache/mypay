@@ -4,6 +4,14 @@ import type { PaymentBreakdown } from "@/lib/types";
 import { formatMoney, formatPercent } from "@/lib/calc";
 import type { RateSource } from "@/lib/rates";
 
+function totalAmountClass(formatted: string): string {
+  const len = formatted.replace(/\s/g, "").length;
+  if (len >= 16) return "text-xl sm:text-2xl";
+  if (len >= 14) return "text-2xl sm:text-3xl";
+  if (len >= 12) return "text-[1.65rem] leading-tight sm:text-3xl";
+  return "text-3xl sm:text-4xl";
+}
+
 export function EstimatePanel({
   breakdown,
   rateMeta,
@@ -35,19 +43,23 @@ export function EstimatePanel({
         ? "ЦБ РФ"
         : "запасной курс";
 
+  const totalFormatted = formatMoney(breakdown.totalRub);
+
   return (
     <aside className="overflow-hidden rounded-2xl border border-primary/15 bg-white shadow-sm">
-      <div className="bg-gradient-to-br from-primary to-primary-dark px-5 py-5 text-white sm:px-6">
+      <div className="bg-gradient-to-br from-primary to-primary-dark px-4 py-5 text-white sm:px-6">
         <p className="text-sm font-medium text-white/80">К переводу на счёт МА</p>
-        <p className="mt-1 font-display text-3xl tracking-tight sm:text-4xl">
-          {formatMoney(breakdown.totalRub)}
+        <p
+          className={`mt-1 font-display tracking-tight break-words [overflow-wrap:anywhere] ${totalAmountClass(totalFormatted)}`}
+        >
+          {totalFormatted}
         </p>
         <p className="mt-2 text-xs text-white/75">
           Предварительный расчёт. Финальная сумма согласовывается по банковскому курсу на день оплаты.
         </p>
       </div>
 
-      <dl className="space-y-3 px-5 py-5 text-sm sm:px-6">
+      <dl className="space-y-3 px-4 py-5 text-sm sm:px-6">
         <Row
           label={`Счёт поставщика (${breakdown.currency})`}
           value={formatMoney(breakdown.amount, breakdown.currency)}
@@ -67,11 +79,11 @@ export function EstimatePanel({
           value={formatMoney(breakdown.bankFeeRub)}
         />
         <div className="border-t border-neutral-100 pt-3">
-          <Row label="Итого к оплате" value={formatMoney(breakdown.totalRub)} strong />
+          <Row label="Итого к оплате" value={totalFormatted} strong />
         </div>
       </dl>
 
-      <div className="border-t border-neutral-100 bg-neutral-50 px-5 py-4 text-xs leading-relaxed text-neutral-600 sm:px-6">
+      <div className="border-t border-neutral-100 bg-neutral-50 px-4 py-4 text-xs leading-relaxed text-neutral-600 sm:px-6">
         {rateMeta?.note || "Рекомендуем переводить с небольшим запасом."}{" "}
         <a
           className="font-medium text-link underline-offset-2 hover:underline"
@@ -97,10 +109,16 @@ function Row({
   strong?: boolean;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <dt className={strong ? "font-semibold text-neutral-900" : "text-neutral-600"}>{label}</dt>
+    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+      <dt
+        className={`min-w-0 max-w-[55%] text-pretty ${
+          strong ? "font-semibold text-neutral-900" : "text-neutral-600"
+        }`}
+      >
+        {label}
+      </dt>
       <dd
-        className={`shrink-0 text-right tabular-nums ${
+        className={`min-w-0 flex-1 text-right tabular-nums break-words [overflow-wrap:anywhere] ${
           strong ? "font-semibold text-neutral-900" : "text-neutral-800"
         }`}
       >
