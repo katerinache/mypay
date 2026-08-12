@@ -188,11 +188,22 @@ export function PaymentForm() {
       breakdown,
     };
 
+    const body = new FormData();
+    body.append("payload", JSON.stringify(payload));
+    const invoiceFile = form.get("invoiceFile");
+    if (invoiceFile instanceof File && invoiceFile.size > 0) {
+      if (invoiceFile.size > 8 * 1024 * 1024) {
+        setError("Файл счёта слишком большой (макс. 8 МБ)");
+        setStatus("error");
+        return;
+      }
+      body.append("invoiceFile", invoiceFile);
+    }
+
     try {
       const res = await fetch("/api/payment-request", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body,
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -358,7 +369,7 @@ export function PaymentForm() {
                   {invoiceName || "PDF или изображение счёта"}
                 </span>
                 <span className="text-xs text-neutral-400">
-                  На этом этапе сохраняется имя файла
+                  PDF или изображение до 8 МБ — уйдёт менеджеру вместе с заявкой
                 </span>
               </label>
             </div>

@@ -3,18 +3,56 @@ import path from "node:path";
 import { NextResponse } from "next/server";
 import { calculatePayment } from "@/lib/calc";
 import { findCountryByName } from "@/lib/countries";
-import { notifyRocketChat } from "@/lib/rocketchat";
+import { notifyRocketChat, readInvoiceFile, type InvoiceFile } from "@/lib/rocketchat";
 import type { Currency, PaymentRequestPayload } from "@/lib/types";
 
 export const runtime = "nodejs";
+
+export const maxDuration = 30;
 
 function isCurrency(value: unknown): value is Currency {
   return ["EUR", "USD", "CNY", "AED"].includes(String(value));
 }
 
+async function parseRequest(request: Request): Promise<{
+  body: Partial<PaymentRequestPayload>;
+  invoiceFile: InvoiceFile | null;
+}> {
+  const contentType = request.headers.get("content-type") || "";
+
+  if (contentType.includes("multipart/form-data")) {
+    const form = await request.formData();
+    const rawPayload = form.get("payload");
+    if (typeof rawPayload !== "string" || !rawPayload.trim()) {
+      throw new Error("MISSING_PAYLOAD");
+    }
+    const body = JSON.parse(rawPayload) as Partial<PaymentRequestPayload>;
+    const rawFile = form.get("invoiceFile");
+    const invoiceFile =
+      rawFile instanceof File ? await readInvoiceFile(rawFile) : null;
+    return { body, invoiceFile };
+  }
+
+  const body = (await request.json()) as Partial<PaymentRequestPayload>;
+  return { body, invoiceFile: null };
+}
+
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as Partial<PaymentRequestPayload>;
+    let body: Partial<PaymentRequestPayload>;
+    let invoiceFile: InvoiceFile | null;
+
+    try {
+      ({ body, invoiceFile } = await parseRequest(request));
+    } catch (err) {
+      if (err instanceof Error && err.message === "MISSING_PAYLOAD") {
+        return NextResponse.json({ error: "Некорректные данные заявки" }, { status: 400 });
+      }
+      if (err instanceof Error && err.message.includes("слишком большой")) {
+        return NextResponse.json({ error: err.message }, { status: 400 });
+      }
+      throw err;
+    }
 
     const required = [
       "partnerCompany",
@@ -67,6 +105,7 @@ export async function POST(request: Request) {
     }
 
     const id = `MTP-${Date.now().toString(36).toUpperCase()}`;
+    const invoiceFileName = invoiceFile?.name || body.invoiceFileName;
     const record = {
       id,
       createdAt: new Date().toISOString(),
@@ -88,7 +127,7 @@ export async function POST(request: Request) {
       touristServicesOnly: true,
       notRestrictedCountry: true,
       acceptEstimate: true,
-      invoiceFileName: body.invoiceFileName,
+      invoiceFileName,
       breakdown,
       status: "submitted",
     };
@@ -106,8 +145,8 @@ export async function POST(request: Request) {
       console.info("payment-request", JSON.stringify(record));
     }
 
-    const rocket = await notifyRocketChat(record);
-    if (!rocket.sent) {
+    const rocket = await notifyRocketChat(record, invoiceFile);
+    if (!rocket.sent || rocket.error) {
       console.warn("rocketchat-notify", rocket.error);
     }
 
@@ -116,6 +155,7 @@ export async function POST(request: Request) {
       id,
       breakdown,
       notified: rocket.sent,
+      fileSent: rocket.fileSent,
     });
   } catch {
     return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 });
