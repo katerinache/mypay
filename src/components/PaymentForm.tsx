@@ -308,7 +308,7 @@ export function PaymentForm() {
           </div>
         </SectionCard>
 
-        <div className="sticky top-20 z-20 -mx-1 rounded-[1.35rem] bg-background/90 p-1 backdrop-blur-md lg:hidden">
+        <div className="sticky top-[4.75rem] z-30 -mx-1 self-start rounded-[1.35rem] bg-background/95 p-1 shadow-[0_12px_40px_-28px_rgba(21,23,29,0.55)] backdrop-blur-md lg:hidden">
           <SummaryRail />
         </div>
 
@@ -459,7 +459,7 @@ export function PaymentForm() {
         </SectionCard>
       </div>
 
-      <div className="hidden lg:sticky lg:top-20 lg:block lg:self-start">
+      <div className="hidden self-start lg:sticky lg:top-[4.75rem] lg:block">
         <SummaryRail />
       </div>
     </form>

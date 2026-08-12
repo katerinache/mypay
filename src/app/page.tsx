@@ -3,7 +3,7 @@ import { PaymentFlowSteps } from "@/components/PaymentFlowSteps";
 
 export default function HomePage() {
   return (
-    <div className="hero-plane relative overflow-hidden">
+    <div className="hero-plane relative overflow-x-clip">
       <div className="grid-fade pointer-events-none absolute inset-0" aria-hidden />
 
       <section className="relative mx-auto max-w-6xl px-4 pb-8 pt-10 sm:px-6 sm:pt-14">
