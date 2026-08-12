@@ -264,16 +264,6 @@ export function PaymentForm() {
           subtitle="Сначала посмотрите ориентир в рублях — детали счёта можно заполнить ниже"
         >
           <div className="grid gap-3.5 sm:grid-cols-2">
-            <TextInput
-              label="Сумма счёта"
-              name="amount"
-              inputMode="decimal"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
-              error={fieldErrors.amount}
-              suffix={currency}
-            />
             <TextSelect
               label="Валюта"
               name="currency"
@@ -287,6 +277,16 @@ export function PaymentForm() {
                 </option>
               ))}
             </TextSelect>
+            <TextInput
+              label="Сумма счёта"
+              name="amount"
+              inputMode="decimal"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+              error={fieldErrors.amount}
+              suffix={currency}
+            />
             <input type="hidden" name="commissionRate" value={commissionRate} />
             <input type="hidden" name="rate" value={rate} />
           </div>
