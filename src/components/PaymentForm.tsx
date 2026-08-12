@@ -5,7 +5,6 @@ import { SectionCard, TextArea, TextInput, TextSelect } from "./Field";
 import { CountryAutocomplete } from "./CountryAutocomplete";
 import { EstimatePanel } from "./EstimatePanel";
 import {
-  COMMISSION_OPTIONS,
   CURRENCIES,
   DEFAULT_RATES,
   calculatePayment,
@@ -19,6 +18,8 @@ type Status = "idle" | "loading" | "success" | "error";
 interface FormErrors {
   [key: string]: string | undefined;
 }
+
+const DEFAULT_COMMISSION = 0.02;
 
 export function PaymentForm() {
   const [currency, setCurrency] = useState<Currency>("EUR");
@@ -38,7 +39,7 @@ export function PaymentForm() {
   const [rateManual, setRateManual] = useState(false);
   const rateManualRef = useRef(false);
   const currencyRef = useRef<Currency>("EUR");
-  const [commissionRate, setCommissionRate] = useState(0.02);
+  const commissionRate = DEFAULT_COMMISSION;
   const [paymentSource, setPaymentSource] = useState<PaymentSource>("balance");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
@@ -240,7 +241,6 @@ export function PaymentForm() {
             setRate(String(liveRates.EUR ?? DEFAULT_RATES.EUR));
             setCurrency("EUR");
             currencyRef.current = "EUR";
-            setCommissionRate(0.02);
             rateManualRef.current = false;
             setRateManual(false);
           }}
@@ -250,6 +250,17 @@ export function PaymentForm() {
       </div>
     );
   }
+
+  const estimate = (
+    <EstimatePanel
+      breakdown={breakdown}
+      rateMeta={{
+        source: rateManual ? "default" : rateSources[currency],
+        loading: ratesLoading,
+        note: rateNote,
+      }}
+    />
+  );
 
   return (
     <form
@@ -288,6 +299,7 @@ export function PaymentForm() {
               ))}
             </TextSelect>
             <TextInput
+              className="sm:col-span-2"
               label="Курс к рублю"
               name="rate"
               inputMode="decimal"
@@ -310,20 +322,11 @@ export function PaymentForm() {
               }
               suffix="₽"
             />
-            <TextSelect
-              label="Комиссия МА"
-              name="commissionRate"
-              value={commissionRate}
-              onChange={(e) => setCommissionRate(Number(e.target.value))}
-            >
-              {COMMISSION_OPTIONS.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </TextSelect>
+            <input type="hidden" name="commissionRate" value={commissionRate} />
           </div>
         </SectionCard>
+
+        <div className="lg:hidden">{estimate}</div>
 
         <SectionCard
           step={2}
@@ -486,16 +489,7 @@ export function PaymentForm() {
         </SectionCard>
       </div>
 
-      <div className="lg:sticky lg:top-20 lg:self-start">
-        <EstimatePanel
-          breakdown={breakdown}
-          rateMeta={{
-            source: rateManual ? "default" : rateSources[currency],
-            loading: ratesLoading,
-            note: rateNote,
-          }}
-        />
-      </div>
+      <div className="hidden lg:sticky lg:top-20 lg:block lg:self-start">{estimate}</div>
     </form>
   );
 }

@@ -22,7 +22,7 @@ export function EstimatePanel({
         <h2 className="mt-1 font-display text-xl text-neutral-900">Сумма к переводу</h2>
         <p className="mt-3 text-sm leading-relaxed text-neutral-600">
           Укажите сумму счёта, валюту и курс — здесь появится ориентир в рублях с учётом комиссии МА
-          и банковских расходов.
+          2% и банковских расходов.
         </p>
       </aside>
     );
