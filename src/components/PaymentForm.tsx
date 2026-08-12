@@ -240,21 +240,37 @@ export function PaymentForm() {
     );
   }
 
-  const estimate = (
-    <EstimatePanel
-      breakdown={breakdown}
-      rateMeta={{
-        source: rateSources[currency],
-        loading: ratesLoading,
-        note: rateNote,
-      }}
-    />
-  );
+  function SummaryRail() {
+    return (
+      <div className="space-y-3">
+        <EstimatePanel
+          breakdown={breakdown}
+          rateMeta={{
+            source: rateSources[currency],
+            loading: ratesLoading,
+            note: rateNote,
+          }}
+        />
+        {status === "error" ? (
+          <p className="text-sm text-error" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <button
+          type="submit"
+          disabled={status === "loading"}
+          className="inline-flex w-full items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-sm font-semibold text-white shadow-[0_12px_28px_-14px_rgba(249,105,41,0.9)] transition hover:bg-accent-dark disabled:opacity-60"
+        >
+          {status === "loading" ? "Отправляем…" : "Отправить заявку на оплату"}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form
       id="payment-form"
-      className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]"
+      className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start"
       onSubmit={onSubmit}
     >
       <div className="space-y-5">
@@ -292,7 +308,9 @@ export function PaymentForm() {
           </div>
         </SectionCard>
 
-        <div className="lg:hidden">{estimate}</div>
+        <div className="sticky top-20 z-20 -mx-1 rounded-[1.35rem] bg-background/90 p-1 backdrop-blur-md lg:hidden">
+          <SummaryRail />
+        </div>
 
         <SectionCard
           step={2}
@@ -438,24 +456,12 @@ export function PaymentForm() {
               label="Понимаю, что расчёт предварительный и сумма будет согласована отдельно"
             />
           </div>
-
-          {status === "error" ? (
-            <p className="mt-4 text-sm text-error" role="alert">
-              {error}
-            </p>
-          ) : null}
-
-          <button
-            type="submit"
-            disabled={status === "loading"}
-            className="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-sm font-semibold text-white shadow-[0_12px_28px_-14px_rgba(249,105,41,0.9)] transition hover:bg-accent-dark disabled:opacity-60 sm:w-auto sm:min-w-56"
-          >
-            {status === "loading" ? "Отправляем…" : "Отправить заявку на оплату"}
-          </button>
         </SectionCard>
       </div>
 
-      <div className="hidden lg:sticky lg:top-20 lg:block lg:self-start">{estimate}</div>
+      <div className="hidden lg:sticky lg:top-20 lg:block lg:self-start">
+        <SummaryRail />
+      </div>
     </form>
   );
 }
