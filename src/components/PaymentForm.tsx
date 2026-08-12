@@ -302,6 +302,7 @@ export function PaymentForm() {
               required
               error={fieldErrors.amount}
               suffix={currency}
+              hint="Введите сумму из счёта поставщика — ниже появится предварительный расчёт в рублях"
             />
             <input type="hidden" name="commissionRate" value={commissionRate} />
             <input type="hidden" name="rate" value={rate} />
