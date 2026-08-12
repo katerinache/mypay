@@ -33,7 +33,7 @@ export function PaymentForm() {
     AED: "default",
   });
   const [rateNote, setRateNote] = useState(
-    "Запасной ориентир. Итог — банковский курс на день оплаты.",
+    "Запасной предварительный расчёт. Итог — банковский курс на день оплаты.",
   );
   const [ratesLoading, setRatesLoading] = useState(true);
   const currencyRef = useRef<Currency>("EUR");
@@ -62,7 +62,7 @@ export function PaymentForm() {
         setRate(String(data.rates[code] ?? DEFAULT_RATES[code]));
       } catch {
         if (!cancelled) {
-          setRateNote("Не удалось обновить курс. Используем запасной ориентир.");
+          setRateNote("Не удалось обновить курс. Используем запасной предварительный расчёт.");
         }
       } finally {
         if (!cancelled) setRatesLoading(false);
@@ -261,7 +261,7 @@ export function PaymentForm() {
         <SectionCard
           step={1}
           title="Сколько это будет стоить"
-          subtitle="Сначала посмотрите ориентир в рублях — детали счёта можно заполнить ниже"
+          subtitle="Сначала посмотрите предварительный расчёт в рублях — детали счёта можно заполнить ниже"
         >
           <div className="grid gap-3.5 sm:grid-cols-2">
             <TextSelect

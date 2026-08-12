@@ -21,7 +21,7 @@ export function EstimatePanel({
         <p className="text-sm font-medium text-primary">Предварительный расчёт</p>
         <h2 className="mt-1 font-display text-xl text-neutral-900">Сумма к переводу</h2>
         <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-          Укажите сумму счёта и валюту — здесь появится ориентир в рублях с учётом комиссии МА
+          Укажите сумму счёта и валюту — здесь появится предварительный расчёт в рублях с учётом комиссии МА
           2% и банковских расходов.
         </p>
       </aside>
@@ -33,7 +33,7 @@ export function EstimatePanel({
       ? "BCC FX (покупка)"
       : rateMeta?.source === "cbr"
         ? "ЦБ РФ"
-        : "запасной ориентир";
+        : "запасной курс";
 
   return (
     <aside className="overflow-hidden rounded-2xl border border-primary/15 bg-white shadow-sm">
@@ -43,7 +43,7 @@ export function EstimatePanel({
           {formatMoney(breakdown.totalRub)}
         </p>
         <p className="mt-2 text-xs text-white/75">
-          Ориентир. Финальная сумма согласовывается по банковскому курсу на день оплаты.
+          Предварительный расчёт. Финальная сумма согласовывается по банковскому курсу на день оплаты.
         </p>
       </div>
 
